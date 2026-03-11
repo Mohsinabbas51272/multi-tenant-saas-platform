@@ -1,0 +1,110 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Theme: Champagne Luxe (Warm Premium Light) */
+    --primary-raw: 190 155 80;
+    --bg-main: 253 252 245;
+    --bg-card: 255 255 255;
+    --text-main: 25 20 10;
+    --text-muted: 110 100 80;
+    --border-subtle: 235 225 210;
+    --accent-glow: 190 155 80;
+  }
+
+  [data-theme='midnight-onyx'] {
+    /* Theme: Royal Amethyst (Luxury Dark) */
+    --primary-raw: 180 120 255;
+    --bg-main: 8 2 15;
+    --bg-card: 15 5 25;
+    --text-main: 245 235 255;
+    --text-muted: 140 120 160;
+    --border-subtle: 35 15 50;
+    --accent-glow: 180 120 255;
+  }
+
+  [data-theme='rose-gold'] {
+    /* Theme: Rose Gold (Luxury) */
+    --primary-raw: 225 126 150;
+    --bg-main: 28 10 10;
+    --bg-card: 45 20 20;
+    --text-main: 255 241 242;
+    --text-muted: 190 150 150;
+    --border-subtle: 65 30 30;
+    --accent-glow: 244 158 181;
+  }
+
+  [data-theme='cyber-emerald'] {
+    /* Theme: Cyber Emerald (Matrix Premium) */
+    --primary-raw: 16 185 129;
+    --bg-main: 5 10 5;
+    --bg-card: 10 20 10;
+    --text-main: 236 253 245;
+    --text-muted: 52 211 153;
+    --border-subtle: 20 50 20;
+    --accent-glow: 52 211 153;
+  }
+
+  body {
+    background-color: rgb(var(--bg-main));
+    color: rgb(var(--text-main));
+    @apply antialiased transition-colors duration-500;
+    font-family: 'Inter', sans-serif;
+    letter-spacing: -0.01em;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply tracking-tight font-extrabold;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-white/70 backdrop-blur-md border border-white/20;
+    box-shadow: theme('boxShadow.glass');
+  }
+  
+  .bento-grid {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6;
+  }
+
+  .premium-button {
+    @apply px-5 py-2.5 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center gap-2;
+  }
+
+  .premium-button-primary {
+    @apply premium-button bg-primary-500 text-white shadow-lg shadow-primary-500/20 hover:bg-primary-600 hover:-translate-y-0.5 active:translate-y-0;
+  }
+
+  .premium-button-secondary {
+    @apply premium-button bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 hover:border-slate-300;
+  }
+
+  .sidebar-item {
+    @apply flex items-center gap-3 px-4 py-3 rounded-2xl font-semibold transition-all duration-200 text-slate-500 hover:bg-slate-100/50 hover:text-slate-900;
+  }
+
+  .sidebar-item-active {
+    @apply sidebar-item bg-white text-primary-500 shadow-sm border border-slate-100;
+  }
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  @apply bg-slate-200 rounded-full;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  @apply bg-slate-300;
+}

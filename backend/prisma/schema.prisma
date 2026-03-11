@@ -1,0 +1,208 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  superadmin
+  admin
+  user
+}
+
+enum SubscriptionStatus {
+  pending
+  active
+  suspended
+  rejected
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+}
+
+enum PaymentMethod {
+  COD
+  STRIPE
+  PAYPAL
+}
+
+model Tenant {
+  id                  String             @id @default(uuid())
+  name                String
+  slug                String             @unique
+  email               String             @unique
+  subscription_status SubscriptionStatus @default(pending)
+  plan                String             @default("basic")
+  stripe_customer_id  String?            @unique
+  stripe_subscription_id String?         @unique
+  stripe_price_id     String?
+  subscription_end_date DateTime?
+  created_at          DateTime           @default(now())
+  updated_at          DateTime           @updatedAt
+  users               User[]
+  products            Product[]
+  orders              Order[]
+  coupons             Coupon[]
+
+  @@map("tenants")
+}
+
+model User {
+  id         String   @id @default(uuid())
+  name       String
+  email      String   @unique
+  password   String
+  role       Role
+  is_blocked Boolean  @default(false)
+  tenant_id  String?
+  tenant     Tenant?  @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  orders     Order[]
+  reviews    Review[]
+  wishlist   Wishlist[]
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Product {
+  id          String   @id @default(uuid())
+  name        String
+  price       Decimal  @db.Decimal(10, 2)
+  description String?
+  category    String?    @default("General")
+  image_url   String?
+  stock       Int      @default(0)
+  tenant_id   String
+  tenant      Tenant   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  variants    ProductVariant[]
+  orderItems  OrderItem[]
+  reviews     Review[]
+  wishlistedBy Wishlist[]
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  @@map("products")
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+model Order {
+  id           String      @id @default(uuid())
+  total_amount Decimal     @db.Decimal(10, 2)
+  discount_amount Decimal  @db.Decimal(10, 2) @default(0)
+  shipping_cost Decimal    @db.Decimal(10, 2) @default(0)
+  tax_amount   Decimal     @db.Decimal(10, 2) @default(0)
+  status       OrderStatus @default(PENDING)
+  tenant_id    String
+  tenant       Tenant      @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  customer_id  String
+  customer     User        @relation(fields: [customer_id], references: [id], onDelete: Cascade)
+  items        OrderItem[]
+  history      OrderStatusHistory[]
+  payment_status PaymentStatus @default(PENDING)
+  payment_method PaymentMethod @default(COD)
+  stripe_checkout_id String?   @unique
+  shipping_name    String?
+  shipping_address String?
+  shipping_city    String?
+  shipping_state   String?
+  shipping_zip     String?
+  shipping_country String?
+  created_at     DateTime      @default(now())
+  updated_at     DateTime      @updatedAt
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id         String   @id @default(uuid())
+  order_id   String
+  order      Order    @relation(fields: [order_id], references: [id], onDelete: Cascade)
+  product_id String
+  product    Product  @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  variant_id String?
+  variant    ProductVariant? @relation(fields: [variant_id], references: [id], onDelete: SetNull)
+  quantity   Int
+  price      Decimal  @db.Decimal(10, 2)
+
+  @@map("order_items")
+}
+
+model ProductVariant {
+  id         String   @id @default(uuid())
+  product_id String
+  product    Product  @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  sku        String?
+  size       String?
+  color      String?
+  stock      Int      @default(0)
+  price_adjustment Decimal @db.Decimal(10, 2) @default(0)
+  orderItems OrderItem[]
+
+  @@map("product_variants")
+}
+
+model OrderStatusHistory {
+  id         String   @id @default(uuid())
+  order_id   String
+  order      Order    @relation(fields: [order_id], references: [id], onDelete: Cascade)
+  status     String
+  comment    String?
+  created_at DateTime @default(now())
+
+  @@map("order_status_history")
+}
+
+model Coupon {
+  id          String   @id @default(uuid())
+  code        String
+  discount_percentage Int
+  expiry_date DateTime
+  usage_limit Int      @default(100)
+  used_count  Int      @default(0)
+  tenant_id   String
+  tenant      Tenant   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  created_at  DateTime @default(now())
+
+  @@unique([tenant_id, code])
+  @@map("coupons")
+}
+
+model Review {
+  id          String   @id @default(uuid())
+  rating      Int      @default(5)
+  comment     String?
+  customer_id String
+  customer    User     @relation(fields: [customer_id], references: [id], onDelete: Cascade)
+  product_id  String
+  product     Product  @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  created_at  DateTime @default(now())
+
+  @@unique([customer_id, product_id])
+  @@map("reviews")
+}
+
+model Wishlist {
+  id          String   @id @default(uuid())
+  customer_id String
+  customer    User     @relation(fields: [customer_id], references: [id], onDelete: Cascade)
+  product_id  String
+  product     Product  @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  created_at  DateTime @default(now())
+
+  @@unique([customer_id, product_id])
+  @@map("wishlists")
+}
